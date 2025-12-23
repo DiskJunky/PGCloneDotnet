@@ -49,5 +49,17 @@ public class Engine
         // } until reached destination
         
         // print score
+        
+        // --------------------------------------
+        // TODOs
+        // --------------------------------------
+        // * player attributes
+        //      * [applying!] player attributes
+        // * battle system
+        //      * monster generation
+        // * story system
+        // * gear system
+        // * player buffs/debuffs
+        // * player experience/levelling
     }
 }

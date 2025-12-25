@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PQCloneDotnet.Engine\PQCloneDotnet.Engine.csproj" />
+    <ProjectReference Include="..\AutoQuest.Engine\AutoQuest.Engine.csproj" />
   </ItemGroup>
 
 </Project>

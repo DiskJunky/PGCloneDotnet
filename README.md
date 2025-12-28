@@ -1,4 +1,4 @@
-# AutoQuest
+id# AutoQuest
 A simple, sandboxed auto-RPG inspired by Progress Quest using .NET
 
 

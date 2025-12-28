@@ -47,54 +47,60 @@ public static class Program
         desktop.AddRow(playerStats);
         desktop.AddRow(activity);
         
-        // temporary hook to get output from the engine...
-        void Log(string message)
-        {
-            
-            playerStats.UpdateCell(0, 1, $"[cyan bold]{player.Name}[/]");
-            playerStats.UpdateCell(1, 1, $"[green bold]{player.Health}[/]");
-            playerStats.UpdateCell(2, 1, $"[blue bold]{player.Experience}[/]");
-            
-            // only display the last 5 entries of activity
-            activity.InsertRow(0, $"{DateTime.Now:HH:mm:ss.fff}", message);
-            if (activity.Rows.Count > 5)
+        // setup live updating
+        AnsiConsole.Live(desktop)
+            .Start(ctx =>
             {
-                activity.Rows.RemoveAt(activity.Rows.Count  - 1);
-            }
+                
+                // temporary hook to get output from the engine...
+                void Log(string message)
+                {
             
-            // re-render the display
-            AnsiConsole.Write(desktop);
-        }
+                    playerStats.UpdateCell(0, 1, $"[cyan bold]{player.Name}[/]");
+                    playerStats.UpdateCell(1, 1, $"[green bold]{player.Health}[/]");
+                    playerStats.UpdateCell(2, 1, $"[blue bold]{player.Experience}[/]");
+            
+                    // only display the last 5 entries of activity
+                    activity.InsertRow(0, $"{DateTime.Now:HH:mm:ss.fff}", message);
+                    if (activity.Rows.Count > 5)
+                    {
+                        activity.Rows.RemoveAt(activity.Rows.Count  - 1);
+                    }
+            
+                    // re-render the display
+                    ctx.Refresh();
+                }
         
-        // kick the engine...
-        engine.Initialize(Log);
+                // kick the engine...
+                engine.Initialize(Log);
         
-        // render the display
-        AnsiConsole.Write(desktop);
+                // render the display
+                ctx.Refresh();
         
-        do
-        {
-            engine.DoTick(Log);
-        } while (engine.Player.State != PlayerState.Dead 
-                 && engine.Location < engine.Destination);
+                do
+                {
+                    engine.DoTick(Log);
+                } while (engine.Player.State != PlayerState.Dead 
+                         && engine.Location < engine.Destination);
 
-        Log(string.Empty);
-        //var player = engine.Player;
-        string stateColor = player.State == PlayerState.Alive ? "green" : "red";
-        Log($"[gray]Player [/][cyan bold]{player.Name}[/][gray] is [/][{stateColor}]{player.State}[/][gray]![/]");
-        Log($"[gray]Travelled: [/][yellow bold]{engine.Location}[/][gray] KMs and got [/][blue bold]{player.Experience}[/][gray] xp![/]");
+                Log(string.Empty);
+                //var player = engine.Player;
+                string stateColor = player.State == PlayerState.Alive ? "green" : "red";
+                Log($"[gray]Player [/][cyan bold]{player.Name}[/][gray] is [/][{stateColor}]{player.State}[/][gray]![/]");
+                Log($"[gray]Travelled: [/][yellow bold]{engine.Location}[/][gray] KMs and got [/][blue bold]{player.Experience}[/][gray] xp![/]");
         
-        // complete!
-        Log("[white bold underline]Complete.[/]");
+                // complete!
+                Log("[white bold underline]Complete.[/]");
             
-        // only display the last 5 entries of activity
-        if (activity.Rows.Count > 5)
-        {
-            activity.Rows.RemoveAt(activity.Rows.Count  - 1);
-        }
+                // only display the last 5 entries of activity
+                if (activity.Rows.Count > 5)
+                {
+                    activity.Rows.RemoveAt(activity.Rows.Count  - 1);
+                }
             
-        // re-render the display
-        AnsiConsole.Write(desktop);
+                // re-render the display
+                ctx.Refresh();
+            });
     }
 }
 

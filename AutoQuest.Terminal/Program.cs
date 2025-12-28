@@ -10,17 +10,19 @@ public static class Program
     {
         // load
         var engine = new GameEngine();
+        Render(engine);
+    }
 
+    /// <summary>
+    /// This renders the game state and initiates the main game loop until the
+    /// end conditions are met (<see cref="GameEngine.Running"/>).
+    /// </summary>
+    /// <param name="engine">The game engine to render until complete.</param>
+    private static void Render(GameEngine engine)
+    {
         // add the player panel
-        // var playerStats = new Table().RoundedBorder()
-        //     .BorderColor(Color.White)
-        //     //.Expand()
-        //     .Title("Player Stats")
-        //     .HideHeaders();
         var playerStats = new Grid();
         playerStats.AddColumns(2);
-        //playerStats.AddColumn(string.Empty, c => c.Width(18));
-        //playerStats.AddColumn(string.Empty);
 
         var player = engine.Player;
         playerStats.AddRow("Name:", $"[cyan bold]{player.Name}[/]");
@@ -30,23 +32,20 @@ public static class Program
         var playerPnl = new Panel(playerStats).Header("Player").RoundedBorder();
         
         // add the activity panel
-        var activity = new Table().Border(TableBorder.None) //.RoundedBorder()
-            //.BorderColor(Color.Gray);
+        var activity = new Table().Border(TableBorder.None)
             .Expand();
-                                        //.Title("Activity");
+
         activity.AddColumn("Time", c => c.Width(12));
         activity.AddColumn("Message");
         activity.AddRow(new Rule(), new Rule());
         var actHeader = new Panel(activity).Header("Activity")
-                                                 .BorderColor(Color.White)
-                                                 .RoundedBorder()
-                                                 .Expand();
+            .BorderColor(Color.White)
+            .RoundedBorder()
+            .Expand();
         
         // create the overall layout
         var title = new FigletText(FigletFont.Default, "AutoQuest!");
         title.Justification = Justify.Center;
-        
-        // TODO: convert to a Grid()?
         var desktop = new Table().RoundedBorder()
             .BorderColor(Color.Gray)
             .Expand()
@@ -56,7 +55,6 @@ public static class Program
         // add the sub-panels details
         desktop.AddRow(title);
         desktop.AddRow(playerPnl);
-        //desktop.AddRow(activity);
         desktop.AddRow(actHeader);
         
         // setup live updating
@@ -67,17 +65,23 @@ public static class Program
                 // temporary hook to get output from the engine...
                 void Log(string message)
                 {
-            
-                    //playerStats.UpdateCell(0, 1, $"[cyan bold]{player.Name}[/]");
-                    //playerStats.UpdateCell(1, 1, $"[green bold]{player.Health}[/]");
-                    //playerStats.UpdateCell(2, 1, $"[blue bold]{player.Experience}[/]");
-            
                     // only display the last 5 entries of activity
                     activity.InsertRow(1, $"{DateTime.Now:HH:mm:ss.fff}", message);
-                    if (activity.Rows.Count > 6)
+                    // TODO: in order to handle fading entries, store the activity in a separate collection
+                    //       and handle the rendering of it here as there doesn't appear to be a way of
+                    //       querying the rendered data from the console widgets after the fact.
+                    // if (activity.Rows > 2)
+                    // {
+                    //     activity.UpdateCell(2, 0, new Text(activity.Rows[2][0].ToString()));
+                    // }
+                    if (activity.Rows.Count > 16)
                     {
                         activity.Rows.RemoveAt(activity.Rows.Count  - 1);
                     }
+                    
+                    // TODO: update the player stats
+                    // playerStats.("Health:", $"[green bold]{player.Health}[/]");
+                    // playerStats.AddRow("Exp.:", $"[blue bold]{player.Experience}[/]");                    
             
                     // re-render the display
                     Thread.Sleep(200);
@@ -86,6 +90,7 @@ public static class Program
         
                 // kick the engine...
                 engine.Initialize(Log);
+                player = engine.Player;
         
                 // render the display
                 ctx.Refresh();
@@ -93,17 +98,13 @@ public static class Program
                 do
                 {
                     engine.DoTick(Log);
-                } while (engine.Player.State != PlayerState.Dead 
-                         && engine.Location < engine.Destination);
+                } while (engine.Running);
 
                 Log(string.Empty);
-                //var player = engine.Player;
-                string stateColor = player.State == PlayerState.Alive ? "green" : "red";
-                Log($"[gray]Player [/][cyan bold]{player.Name}[/][gray] is [/][{stateColor}]{player.State}[/][gray]![/]");
+                
+                string stateColor = player.State == QuiddityState.Alive ? "green" : "red";
+                Log($"[gray]Player [/][cyan bold]{player.Name}[/][olive]({player.Health})[/][gray] is [/][{stateColor}]{player.State}[/][gray]![/]");
                 Log($"[gray]Travelled: [/][yellow bold]{engine.Location}[/][gray] KMs and got [/][blue bold]{player.Experience}[/][gray] xp![/]");
-        
-                // complete!
-                //Log("[white bold underline]Complete.[/]");
             
                 // only display the last 5 entries of activity
                 if (activity.Rows.Count > 5)
@@ -116,4 +117,3 @@ public static class Program
             });
     }
 }
-

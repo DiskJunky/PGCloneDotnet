@@ -10,14 +10,31 @@ namespace AutoQuest.Engine;
 /// </summary>
 public class GameEngine
 {
+    #region Fields
     private readonly Random _random = new Random();
+    #endregion
     
+    #region Properties
     public Player Player { get; protected set; } = new Player();
 
+    public List<Combatant> CombatGroup { get; protected set; } = new List<Combatant>();
+
     public int Location { get; protected set; } = 0;
+
     public int TickTravel { get; protected set; } = 1;
+    
     public int Destination { get; protected set; } = 10;
 
+    public bool Running
+        => Player.State != QuiddityState.Dead
+           && Location < Destination;
+    #endregion
+    
+    #region Methods
+    /// <summary>
+    /// Initializes the game engine.
+    /// </summary>
+    /// <param name="logger">The activity log to write out to.</param>
     public void Initialize(Action<string> logger)
     {
         logger("[yellow italic]Reluctantly waking up...[/]");
@@ -33,6 +50,7 @@ public class GameEngine
         
         logger("[italic gray]Initiating baryogenesis...[/]");
         Player = new Player();
+        Player.Mode = PlayerMode.Travel;
     }
     
     /// <summary>
@@ -57,23 +75,61 @@ public class GameEngine
         // }
         #endregion
 
-        //logger($"Player [cyan bold]{Player.Name}[/]: H=[green bold]{Player.Health}[/], Exp=[blue]{Player.Experience}[/]");
-
-        // go to place (determine distance to travel)
-        var to = Location + TickTravel;
-        logger($"[italic]Moving [yellow]{TickTravel}[/] KM to position [yellow]{to}[/]...[/]");
-        
-        // for each unit travelled [one unit per tick] {
-        // random chance of encounter (X%)
-        bool encounter = _random.Next(10) <= 3; // 30%
-        if (encounter)
+        var to = Location;
+        if (Player.Mode == PlayerMode.Travel)
         {
-            //logger($"[gray italic][cyan]{Player.Name}[/] encountered a monster![/]");
+            // go to place (determine distance to travel)
+            to = Location + TickTravel;
+            logger($"[italic]Moving [yellow]{TickTravel}[/] KM to position [yellow]{to}[/]...[/]");
+
+            // for each unit travelled [one unit per tick] {
+            // random chance of encounter (X%)
+            bool encounter = _random.Next(10) <= 3;
+            if (encounter)
+            {
+                CombatGroup.Add(new Combatant("Foddear"));
+                Player.Mode = PlayerMode.Combat;
+                logger($"[gray italic][cyan]{Player.Name}[/] encountered a monster![/]");
+            }
+        }
+
+        if (Player.Mode == PlayerMode.Combat)
+        {
+            // take a turn at combat
+
+            int playerHitDamage = _random.Next(0, 6);
+            int combatantHitDamage = _random.Next(0, 2);
+
+            var combatant = CombatGroup[0];
+            Player.Health -= combatantHitDamage;
+            combatant.Health -= playerHitDamage;
+
+            logger($"[cyan]{Player.Name}[/][olive]({Player.Health})[/] deals [red]{playerHitDamage}[/] to [darkgoldenrod]{combatant.Name}[/][olive]({combatant.Health})[/]!");
+            logger($"[darkgoldenrod]{combatant.Name}[/][olive]({combatant.Health})[/] deals [red]{combatantHitDamage}[/] to [cyan]{Player.Name}[/][olive]({Player.Health})[/]!");
+
+            // did anyone die
+            if (Player.State == QuiddityState.Dead)
+            {
+                logger($"[cyan]{Player.Name}[/] has died :sad:");
+                return;
+            }
+            if (combatant.State == QuiddityState.Dead)
+            {
+                var xp = _random.Next(1, 3);
+                Player.Experience += xp;
+                logger($"[darkgoldenrod]{combatant.Name}[/] is dead! [cyan]{Player.Name}[/] gains [blue]{xp}[/] experience!");
+                
+                // remove the combatant from the group and continue travelling
+                CombatGroup.Clear();
+                Player.Mode = PlayerMode.Travel;
+            }
         }
 
         // only move after encounter is finished
-        // todo: fight state to track of the player is in the middle of something? Player state machine?
-        Location = to;
+        if (Player.Mode == PlayerMode.Travel)
+        {
+            Location = to;
+        }
         
         // if encounter {
         // do {
@@ -109,4 +165,5 @@ public class GameEngine
 
         #endregion
     }
+    #endregion
 }

@@ -20,6 +20,8 @@ public class GameEngine
 
     public void Initialize(Action<string> logger)
     {
+        logger("[yellow italic]Reluctantly waking up...[/]");
+        
         logger("[italic gray]Buttering up muses...[/]");
         TickTravel = 1;
         

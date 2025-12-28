@@ -9,7 +9,6 @@ public static class Program
     public static void Main(string[] args)
     {
         // load
-        AnsiConsole.MarkupLine("[yellow italic]Reluctantly waking up...[/]");
         var engine = new GameEngine();
 
         // add the player panel
@@ -39,7 +38,7 @@ public static class Program
         activity.AddColumn("Message");
         activity.AddRow(new Rule(), new Rule());
         var actHeader = new Panel(activity).Header("Activity")
-                                                 .BorderColor(Color.Gray)
+                                                 .BorderColor(Color.White)
                                                  .RoundedBorder()
                                                  .Expand();
         
